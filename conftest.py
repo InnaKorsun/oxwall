@@ -1,6 +1,8 @@
 import pytest
-from oxwall_site import Oxwall
 from selenium import webdriver
+from oxwall_site import Oxwall
+from value_models.user import User
+
 
 @pytest.fixture()
 def driver():
@@ -8,34 +10,29 @@ def driver():
     driver = webdriver.Chrome()
     driver.implicitly_wait(5)
     driver.maximize_window()
+    driver.get('http://127.0.0.1/oxwall/')
     yield driver
     # Close browser
     driver.quit()
 
 @pytest.fixture
-def site(driver):
-    app = Oxwall(driver)
-    return app
+def app(driver):
+     app = Oxwall(driver)
+     return app
 
 @pytest.fixture()
-def sign_in_session(site, user):
-    site.login_as(user)
-    yield
-    site.logout_as(user)
-
-@pytest.fixture
-def add_newsfeed(site):
-    text = "Should be deleted"
-    site.add_new_text_status(text)
-    return text
+def admin_user():
+    return User(username="admin", password="pass")
 
 
 @pytest.fixture()
 def user():
-    return {"username": "admin", "password": "pass"}
+    return User(username="admin", password="pass") # TODO: parametrize to non-admin users
 
-
-
-
+@pytest.fixture()
+def sign_in_session(app, admin_user):
+    app.login_as(admin_user)
+    yield
+    app.logout_as()
 
 
